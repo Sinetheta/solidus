@@ -325,7 +325,7 @@ describe Spree::Order, :type => :model do
     context 'when the order is completed' do
       before do
         order.state = 'complete'
-        order.completed_at = Time.now
+        order.completed_at = Time.current
         order.update_column(:shipment_total, 5)
         order.shipments.create!
       end
@@ -691,7 +691,7 @@ describe Spree::Order, :type => :model do
       order.completed_at = nil
       expect(order.completed?).to be false
 
-      order.completed_at = Time.now
+      order.completed_at = Time.current
       expect(order.completed?).to be true
     end
   end
@@ -730,14 +730,14 @@ describe Spree::Order, :type => :model do
     it "should be false for completed order in the canceled state" do
       order.state = 'canceled'
       order.shipment_state = 'ready'
-      order.completed_at = Time.now
+      order.completed_at = Time.current
       expect(order.can_cancel?).to be false
     end
 
     it "should be true for completed order with no shipment" do
       order.state = 'complete'
       order.shipment_state = nil
-      order.completed_at = Time.now
+      order.completed_at = Time.current
       expect(order.can_cancel?).to be true
     end
   end
@@ -755,7 +755,7 @@ describe Spree::Order, :type => :model do
     let(:order) { Spree::Order.create } # need a persisted in order to test locking
 
     it 'can lock' do
-      expect { order.with_lock {} }.to_not raise_error
+      order.with_lock {}
     end
   end
 
@@ -772,11 +772,11 @@ describe Spree::Order, :type => :model do
 
   context "#refund_total" do
     let(:order) { create(:order_with_line_items) }
-    let!(:payment) { create(:payment_with_refund, order: order) }
-    let!(:payment2) { create(:payment_with_refund, order: order) }
+    let!(:payment) { create(:payment_with_refund, order: order, amount: 5, refund_amount: 3) }
+    let!(:payment2) { create(:payment_with_refund, order: order, amount: 5, refund_amount: 2.5) }
 
     it "sums the reimbursment refunds on the order" do
-      expect(order.refund_total).to eq(10.0)
+      expect(order.refund_total).to eq(5.5)
     end
   end
 
@@ -820,7 +820,7 @@ describe Spree::Order, :type => :model do
 
     context 'a reimbursement related refund exists' do
       let(:order) { refund.payment.order }
-      let(:refund) { create(:refund, reimbursement_id: 123, amount: 5)}
+      let(:refund) { create(:refund, reimbursement_id: 123, amount: 5, payment_amount: 14)}
 
       it { is_expected.to eq false }
     end
@@ -952,6 +952,12 @@ describe Spree::Order, :type => :model do
     let(:line_item) { Spree::LineItem.new(price: 10, quantity: 1) }
     let(:shipment) { Spree::Shipment.new(cost: 10) }
     let(:payment) { Spree::Payment.new(amount: 10) }
+
+    around do |example|
+      ActiveSupport::Deprecation.silence do
+        example.run
+      end
+    end
 
     before do
       allow(order).to receive(:line_items) { [line_item] }
