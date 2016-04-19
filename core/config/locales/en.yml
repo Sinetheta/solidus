@@ -705,7 +705,7 @@ en:
         settings: Settings
         shipping: Shipping
         stock: Stock
-        stock_items: Management
+        stock_items: Stock
         stock_transfers: Transfers
         taxes: Taxes
         taxonomies: Taxonomies
