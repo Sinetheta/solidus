@@ -1,7 +1,6 @@
-<% content_for :page_title do %>
-  <%= link_to Spree::LegacyUser.model_name.human(count: :other), spree.admin_users_path %> &#x2f;
-  <%= @user.email %>
-<% end %>
+<% add_breadcrumb(link_to Spree::LegacyUser.model_name.human(count: :other), spree.admin_users_path) %>
+<% add_breadcrumb(@user.email) %>
+
 
 <%= render :partial => 'spree/admin/users/sidebar', :locals => { :current => :account } %>
 <%= render :partial => 'spree/admin/users/user_page_actions' %>
